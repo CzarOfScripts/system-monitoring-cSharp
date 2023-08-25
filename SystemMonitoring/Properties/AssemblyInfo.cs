@@ -1,6 +1,5 @@
-﻿using System.Resources;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
@@ -11,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Czar Of Scripts")]
 [assembly: AssemblyProduct("System Monitoring")]
-[assembly: AssemblyCopyright("Copyright © CzarOfScrits.com 2023")]
+[assembly: AssemblyCopyright("Copyright © CzarOfScripts.com 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
