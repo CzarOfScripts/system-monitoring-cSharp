@@ -5,7 +5,7 @@ This program is designed to monitor computer sensors such as:
 - - CPU Temperatures
 - - CPU Load
 - GPU
-- - GPUTemperatures
+- - GPU Temperatures
 - - GPU Load
 - RAM
 - - RAM Load
@@ -14,9 +14,10 @@ This program is designed to monitor computer sensors such as:
 
 It also colors some indicators depending on load/temperature.
 
-![system monitoring panel](git-images/system-monitoring-panel.png)
-
 *This is my first project and experience in C# and it was made for myself, but everyone can use it for their needs.*
+
+## Screenshots:
+![system monitoring panel](git-images/system-monitoring-panel.png)
 
 ## Todo:  
 - [ ]  Create a settings window
