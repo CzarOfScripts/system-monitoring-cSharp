@@ -23,8 +23,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4D1BB286-3F61-43F5-B4C1-6D5AFE1C0E18}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SystemMonitoring</RootNamespace>
-    <AssemblyName>SystemMonitoring</AssemblyName>
+    <RootNamespace>App</RootNamespace>
+    <AssemblyName>System Monitoring</AssemblyName>
     <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -59,7 +59,7 @@
     <StartupObject>App.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>crown.ico</ApplicationIcon>
+    <ApplicationIcon>logo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -103,6 +103,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="SystemInformation.cs" />
+    <Compile Include="ThreadHelper.cs" />
+    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -135,10 +137,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="external\" />
-    <Folder Include="icons\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="crown.ico" />
+    <Content Include="logo.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

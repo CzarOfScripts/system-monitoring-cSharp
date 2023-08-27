@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -15,12 +14,6 @@ namespace App
 
 		private System.Threading.Timer updateKeyboardLayoutTimer;
 		private System.Threading.Timer updateSystemInformation;
-
-		[DllImport("shell32.dll")]
-		private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
-
-		[DllImport("kernel32")]
-		extern static ulong GetTickCount64();
 
 		public PanelForm()
 		{
@@ -39,112 +32,6 @@ namespace App
 			{
 				StartPosition = FormStartPosition.CenterScreen;
 			}
-		}
-
-		private void CreateContextMenu()
-		{
-			ContextMenuStrip menuStrip = new ContextMenuStrip();
-			menuStrip.Font = new Font("Consolas", 10, FontStyle.Regular);
-
-			// Show in taskbar
-			ToolStripMenuItem showInTaskbarITem = new ToolStripMenuItem()
-			{
-				Text = "Show in taskbar",
-				Checked = config.data.IsShowInTaskbar,
-				CheckOnClick = true
-			};
-			showInTaskbarITem.CheckedChanged += (object sender, EventArgs e) =>
-			{
-				config.data.IsShowInTaskbar = ((ToolStripMenuItem) sender).Checked;
-				config.Save();
-
-				ShowInTaskbar = config.data.IsShowInTaskbar;
-			};
-
-			// Allow Move
-			ToolStripMenuItem allowMoveItem = new ToolStripMenuItem()
-			{
-				Text = "Allow move",
-				Checked = config.data.AllowMove,
-				CheckOnClick = true
-			};
-			allowMoveItem.CheckedChanged += (object sender, EventArgs e) =>
-			{
-				config.data.AllowMove = ((ToolStripMenuItem) sender).Checked;
-				config.Save();
-			};
-
-			// Always On Top
-			ToolStripMenuItem alwaysOnTopItem = new ToolStripMenuItem()
-			{
-				Text = "Always On Top",
-				Checked = config.data.AlwaysOnTop,
-				CheckOnClick = true
-			};
-			alwaysOnTopItem.CheckedChanged += (object sender, EventArgs e) =>
-			{
-				config.data.AlwaysOnTop = ((ToolStripMenuItem) sender).Checked;
-				config.Save();
-
-				TopMost = config.data.AlwaysOnTop;
-			};
-
-			// Interval
-			ToolStripMenuItem intervalItems = new ToolStripMenuItem("Interval");
-
-			int[] intervals = { 50, 150, 250, 500, 750, 1000 };
-
-			foreach (int interval in intervals)
-			{
-				ToolStripMenuItem item = new ToolStripMenuItem()
-				{
-					Text = interval + "ms",
-					Checked = config.data.Interval == interval
-				};
-				item.Click += (object sender, EventArgs e) =>
-				{
-					if (((ToolStripMenuItem) sender).Checked == true)
-					{
-						return;
-					}
-
-					((ToolStripMenuItem) sender).Checked = true;
-
-					foreach (ToolStripMenuItem intervalItem in intervalItems.DropDown.Items)
-					{
-						if (intervalItem.Checked && intervalItem.Text != ((ToolStripMenuItem) sender).Text)
-						{
-							intervalItem.Checked = false;
-						}
-					}
-
-					config.data.Interval = interval;
-					config.Save();
-					updateSystemInformation.Change(0, config.data.Interval);
-				};
-
-				intervalItems.DropDownItems.Add(item);
-			}
-
-			// Added to context menu
-			menuStrip.Items.Add(showInTaskbarITem);
-			menuStrip.Items.Add(allowMoveItem);
-			menuStrip.Items.Add(alwaysOnTopItem);
-
-			menuStrip.Items.Add(new ToolStripSeparator());
-
-			menuStrip.Items.Add(intervalItems);
-
-			menuStrip.Items.Add(new ToolStripSeparator());
-
-			menuStrip.Items.Add(
-				new ToolStripMenuItem(
-				"Close",
-				GetShell32Icon(131)?.ToBitmap(),
-				(object sender, EventArgs e) => Close())
-			);
-
-			contextMenuStrip = menuStrip;
 		}
 
 		private void PanelForm_Load(object sender, EventArgs e)
@@ -174,9 +61,9 @@ namespace App
 		{
 			string currentLang = Keyboard.GetLayoutNameFromIds(Keyboard.GetKeyboardLayoutId());
 
-			if (currentLang != ThreadHelperClass.GetLabelText(this, KeyboardLayout))
+			if (currentLang != ThreadHelper.GetLabelText(this, KeyboardLayout))
 			{
-				ThreadHelperClass.SetLabelText(this, KeyboardLayout, currentLang);
+				ThreadHelper.SetLabelText(this, KeyboardLayout, currentLang);
 			}
 		}
 
@@ -185,39 +72,39 @@ namespace App
 			SystemDataInformation data = SystemInformation.GetSystemInformation();
 
 			//GPU
-			ThreadHelperClass.SetLabelText(this, GpuLoad, Convert.ToString(data.gpuLoad) + (data.gpuLoad < 100 ? " " : "") + "%");
-			ThreadHelperClass.SetControlForeColor(this, GpuLoad, HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.GPU, data.gpuLoad)));
+			ThreadHelper.SetLabelText(this, GpuLoad, Convert.ToString(data.gpuLoad) + (data.gpuLoad < 100 ? " " : "") + "%");
+			ThreadHelper.SetControlForeColor(this, GpuLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.GPU, data.gpuLoad)));
 
-			ThreadHelperClass.SetLabelText(this, GpuTemp, Convert.ToString(data.gpuTemperature) + "°C");
-			ThreadHelperClass.SetControlForeColor(this, GpuTemp, HexToColor(config.GetColor(GetColorType.TEMPERATURES, GetColorDevice.GPU, data.gpuTemperature)));
+			ThreadHelper.SetLabelText(this, GpuTemp, Convert.ToString(data.gpuTemperature) + "°C");
+			ThreadHelper.SetControlForeColor(this, GpuTemp, Utilities.HexToColor(config.GetColor(GetColorType.TEMPERATURES, GetColorDevice.GPU, data.gpuTemperature)));
 
 			//CPU
-			ThreadHelperClass.SetLabelText(this, CpuLoad, Convert.ToString((int) data.cpuLoad) + (data.cpuLoad < 100 ? " " : "") + "%");
-			ThreadHelperClass.SetControlForeColor(this, CpuLoad, HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.CPU, (int) data.cpuLoad)));
+			ThreadHelper.SetLabelText(this, CpuLoad, Convert.ToString((int) data.cpuLoad) + (data.cpuLoad < 100 ? " " : "") + "%");
+			ThreadHelper.SetControlForeColor(this, CpuLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.CPU, (int) data.cpuLoad)));
 
-			ThreadHelperClass.SetLabelText(this, CpuTemp, Convert.ToString((int) data.cpuTemperature) + "°C");
-			ThreadHelperClass.SetControlForeColor(this, CpuTemp, HexToColor(config.GetColor(GetColorType.TEMPERATURES, GetColorDevice.CPU, (int) data.cpuTemperature)));
+			ThreadHelper.SetLabelText(this, CpuTemp, Convert.ToString((int) data.cpuTemperature) + "°C");
+			ThreadHelper.SetControlForeColor(this, CpuTemp, Utilities.HexToColor(config.GetColor(GetColorType.TEMPERATURES, GetColorDevice.CPU, (int) data.cpuTemperature)));
 
 			//RAM
-			ThreadHelperClass.SetLabelText(this, RamLoad, string.Format("{0:0.00}", data.ramLoad) + " % ");
-			ThreadHelperClass.SetControlForeColor(this, RamLoad, HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.RAM, (int) data.ramLoad)));
+			ThreadHelper.SetLabelText(this, RamLoad, string.Format("{0:0.00}", data.ramLoad) + " % ");
+			ThreadHelper.SetControlForeColor(this, RamLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.RAM, (int) data.ramLoad)));
 
-			ThreadHelperClass.SetLabelText(this, RamFree, string.Format("{0:0.00}", data.ramAvailable) + " GB");
+			ThreadHelper.SetLabelText(this, RamFree, string.Format("{0:0.00}", data.ramAvailable) + " GB");
 
 			//Uptime
-			TimeSpan uptimeTime = TimeSpan.FromMilliseconds(GetTickCount64());
+			TimeSpan uptimeTime = TimeSpan.FromMilliseconds(Utilities.GetTickCount64());
 
 			if (uptimeTime.Days > 0)
 			{
-				ThreadHelperClass.SetLabelText(this, Uptime, $"{uptimeTime.Days}d {uptimeTime.Hours:D2}h");
+				ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Days}d {uptimeTime.Hours:D2}h");
 			}
 			else if (uptimeTime.Hours > 0)
 			{
-				ThreadHelperClass.SetLabelText(this, Uptime, $"{uptimeTime.Hours:D2}h {uptimeTime.Minutes:D2}m");
+				ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Hours:D2}h {uptimeTime.Minutes:D2}m");
 			}
 			else
 			{
-				ThreadHelperClass.SetLabelText(this, Uptime, $"{uptimeTime.Minutes:D2}m {uptimeTime.Seconds:D2}s");
+				ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Minutes:D2}m {uptimeTime.Seconds:D2}s");
 			}
 		}
 
@@ -289,73 +176,106 @@ namespace App
 			SystemInformation.Close();
 		}
 
-		private Icon GetShell32Icon(int iconIndex)
+		private void CreateContextMenu()
 		{
-			IntPtr iconHandle = ExtractIcon(IntPtr.Zero, "shell32.dll", iconIndex);
+			ContextMenuStrip menuStrip = new ContextMenuStrip();
+			menuStrip.Font = new Font("Consolas", 10, FontStyle.Regular);
 
-			return iconHandle == IntPtr.Zero ? null : Icon.FromHandle(iconHandle);
+			AddMenuItem(menuStrip, "Show in taskbar", config.data.IsShowInTaskbar, OnShowInTaskbarClick);
+			AddMenuItem(menuStrip, "Allow move", config.data.AllowMove, OnAllowMoveClick);
+			AddMenuItem(menuStrip, "Always On Top", config.data.AlwaysOnTop, OnAlwaysOnTopClick);
+
+			menuStrip.Items.Add(new ToolStripSeparator());
+
+			ToolStripMenuItem intervalItems = CreateIntervalMenu();
+			menuStrip.Items.Add(intervalItems);
+
+			menuStrip.Items.Add(new ToolStripSeparator());
+
+			menuStrip.Items.Add(
+				new ToolStripMenuItem(
+					"Close",
+					Utilities.GetShell32Icon(131)?.ToBitmap(),
+					OnCloseClick
+				)
+			);
+
+			contextMenuStrip = menuStrip;
 		}
 
-		private Color HexToColor(string hex)
+		private ToolStripMenuItem CreateIntervalMenu()
 		{
-			hex = hex.Replace("#", "");
+			ToolStripMenuItem intervalItems = new ToolStripMenuItem("Interval");
 
-			int length = hex.Length;
-			int step = length == 3 ? 1 : 2;
+			int[] intervals = { 50, 150, 250, 500, 750, 1000 };
 
-			if (length != 3 && length != 6)
+			foreach (int interval in intervals)
 			{
-				throw new ArgumentException($"Incorrect HEX color format {hex}", nameof(hex));
+				ToolStripMenuItem item = new ToolStripMenuItem()
+				{
+					Text = interval + "ms",
+					Checked = config.data.Interval == interval
+				};
+				item.Click += OnIntervalItemClick;
+				intervalItems.DropDownItems.Add(item);
 			}
 
-			int r = Convert.ToInt32(hex.Substring(0, step), 16);
-			int g = Convert.ToInt32(hex.Substring(step, step), 16);
-			int b = Convert.ToInt32(hex.Substring(2 * step, step), 16);
-
-			return Color.FromArgb(r, g, b);
-		}
-	}
-
-	public static class ThreadHelperClass
-	{
-		delegate void SetTextCallback(Form f, Control ctrl, string text);
-		delegate string GetTextCallback(Form f, Control ctrl);
-		delegate void SetControlForeColorCallback(Form f, Control ctrl, System.Drawing.Color color);
-
-		public static void SetLabelText(Form form, Control ctrl, string text)
-		{
-			if (ctrl.InvokeRequired)
-			{
-				form.Invoke(new SetTextCallback(SetLabelText), new object[] { form, ctrl, text });
-			}
-			else
-			{
-				ctrl.Text = text;
-			}
+			return intervalItems;
 		}
 
-		public static string GetLabelText(Form form, Control ctrl)
+		private void AddMenuItem(ContextMenuStrip menuStrip, string text, bool isChecked, EventHandler clickEvent)
 		{
-			if (ctrl.InvokeRequired)
+			ToolStripMenuItem menuItem = new ToolStripMenuItem()
 			{
-				return (string) form.Invoke(new GetTextCallback(GetLabelText), new object[] { form, ctrl });
-			}
-			else
-			{
-				return ctrl.Text;
-			}
+				Text = text,
+				Checked = isChecked,
+				CheckOnClick = true
+			};
+			menuItem.CheckedChanged += clickEvent;
+			menuStrip.Items.Add(menuItem);
 		}
 
-		public static void SetControlForeColor(Form form, Control ctrl, System.Drawing.Color color)
+		private void OnShowInTaskbarClick(object sender, EventArgs e)
 		{
-			if (ctrl.InvokeRequired)
+			bool isChecked = ((ToolStripMenuItem) sender).Checked;
+			config.data.IsShowInTaskbar = isChecked;
+			config.Save();
+			ShowInTaskbar = isChecked;
+		}
+
+		private void OnAllowMoveClick(object sender, EventArgs e)
+		{
+			bool isChecked = ((ToolStripMenuItem) sender).Checked;
+			config.data.AllowMove = isChecked;
+			config.Save();
+		}
+
+		private void OnAlwaysOnTopClick(object sender, EventArgs e)
+		{
+			bool isChecked = ((ToolStripMenuItem) sender).Checked;
+			config.data.AlwaysOnTop = isChecked;
+			config.Save();
+			TopMost = isChecked;
+		}
+
+		private void OnIntervalItemClick(object sender, EventArgs e)
+		{
+			ToolStripMenuItem selectedIntervalItem = (ToolStripMenuItem) sender;
+			int selectedInterval = int.Parse(selectedIntervalItem.Text.Replace("ms", ""));
+
+			foreach (ToolStripMenuItem intervalItem in selectedIntervalItem.GetCurrentParent().Items)
 			{
-				form.Invoke(new SetControlForeColorCallback(SetControlForeColor), new object[] { form, ctrl, color });
+				intervalItem.Checked = (intervalItem == selectedIntervalItem);
 			}
-			else
-			{
-				ctrl.ForeColor = color;
-			}
+
+			config.data.Interval = selectedInterval;
+			config.Save();
+			updateSystemInformation.Change(0, config.data.Interval);
+		}
+
+		private void OnCloseClick(object sender, EventArgs e)
+		{
+			Close();
 		}
 	}
 }
