@@ -314,8 +314,10 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.BackColor = System.Drawing.SystemColors.ControlText;
 			this.ClientSize = new System.Drawing.Size(536, 40);
-			this.ControlAdded += this.PanelForm_ControlAdded;
-			this.ControlRemoved += this.PanelForm_ControlRemoved;
+			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.PanelForm_FormClosed);
+			this.Load += new System.EventHandler(this.PanelForm_Load);
+			this.ControlAdded += new System.Windows.Forms.ControlEventHandler(this.PanelForm_ControlAdded);
+			this.ControlRemoved += new System.Windows.Forms.ControlEventHandler(this.PanelForm_ControlRemoved);
 			this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PanelForm_MouseClick);
 			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PanelForm_MouseDown);
 			this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PanelForm_MouseMove);
@@ -350,9 +352,7 @@
 			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "PanelForm";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-			this.Text = "system monitoring panel";
-			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.PanelForm_FormClosed);
-			this.Load += new System.EventHandler(this.PanelForm_Load);
+			this.Text = "System Monitoring | Panel";
 			this.ResumeLayout(false);
 			this.PerformLayout();
 

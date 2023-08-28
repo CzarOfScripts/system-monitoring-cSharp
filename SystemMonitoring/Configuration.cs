@@ -97,6 +97,7 @@ namespace App
 	public class ConfigData
 	{
 		public bool IsShowInTaskbar { get; set; } = true;
+		public bool IsHideAltTab { get; set; } = true;
 		public bool IsMoved { get; set; } = false;
 		public bool AlwaysOnTop { get; set; } = false;
 		public bool AllowMove { get; set; } = true;

@@ -9,8 +9,10 @@ namespace App
 	{
 		private bool isDragging = false;
 		private Point startPoint = Point.Empty;
-		private ContextMenuStrip contextMenuStrip;
 		private readonly Config config = new Config();
+
+		private ContextMenuStrip contextMenuStrip;
+		private ToolStripMenuItem isHideFromAltTabItem;
 
 		private System.Threading.Timer updateKeyboardLayoutTimer;
 		private System.Threading.Timer updateSystemInformation;
@@ -22,6 +24,11 @@ namespace App
 
 			ShowInTaskbar = config.data.IsShowInTaskbar;
 			TopMost = config.data.AlwaysOnTop;
+
+			if (config.data.IsHideAltTab && config.data.IsShowInTaskbar == false)
+			{
+				Utilities.SetAltTabVisibility(Handle, true);
+			}
 
 			if (config.data.IsMoved)
 			{
@@ -182,6 +189,7 @@ namespace App
 			menuStrip.Font = new Font("Consolas", 10, FontStyle.Regular);
 
 			AddMenuItem(menuStrip, "Show in taskbar", config.data.IsShowInTaskbar, OnShowInTaskbarClick);
+			isHideFromAltTabItem = AddMenuItem(menuStrip, "Hide from Alt+Tab", config.data.IsHideAltTab, OnIsHideAltTabClick);
 			AddMenuItem(menuStrip, "Allow move", config.data.AllowMove, OnAllowMoveClick);
 			AddMenuItem(menuStrip, "Always On Top", config.data.AlwaysOnTop, OnAlwaysOnTopClick);
 
@@ -223,7 +231,7 @@ namespace App
 			return intervalItems;
 		}
 
-		private void AddMenuItem(ContextMenuStrip menuStrip, string text, bool isChecked, EventHandler clickEvent)
+		private ToolStripMenuItem AddMenuItem(ContextMenuStrip menuStrip, string text, bool isChecked, EventHandler clickEvent)
 		{
 			ToolStripMenuItem menuItem = new ToolStripMenuItem()
 			{
@@ -233,6 +241,8 @@ namespace App
 			};
 			menuItem.CheckedChanged += clickEvent;
 			menuStrip.Items.Add(menuItem);
+
+			return menuItem;
 		}
 
 		private void OnShowInTaskbarClick(object sender, EventArgs e)
@@ -241,6 +251,21 @@ namespace App
 			config.data.IsShowInTaskbar = isChecked;
 			config.Save();
 			ShowInTaskbar = isChecked;
+
+			isHideFromAltTabItem.Enabled = !isChecked;
+
+			if (isChecked == false && config.data.IsHideAltTab == true)
+			{
+				Utilities.SetAltTabVisibility(Handle, true);
+			}
+		}
+
+		private void OnIsHideAltTabClick(object sender, EventArgs e)
+		{
+			bool isChecked = ((ToolStripMenuItem) sender).Checked;
+			config.data.IsHideAltTab = isChecked;
+			config.Save();
+			Utilities.SetAltTabVisibility(Handle, isChecked);
 		}
 
 		private void OnAllowMoveClick(object sender, EventArgs e)
