@@ -25,11 +25,6 @@ namespace App
 			ShowInTaskbar = config.data.IsShowInTaskbar;
 			TopMost = config.data.AlwaysOnTop;
 
-			if (config.data.IsHideAltTab && config.data.IsShowInTaskbar == false)
-			{
-				Utilities.SetAltTabVisibility(Handle, true);
-			}
-
 			if (config.data.IsMoved)
 			{
 				StartPosition = FormStartPosition.Manual;
@@ -46,6 +41,11 @@ namespace App
 			updateKeyboardLayoutTimer = new System.Threading.Timer(new TimerCallback(UpdateKeyboardLayout), null, 0, 50);
 			updateSystemInformation = new System.Threading.Timer(new TimerCallback(UpdateSystemInformation), null, 0, config.data.Interval);
 			UpdateSystemInformation(null);
+
+			if (config.data.IsHideAltTab && config.data.IsShowInTaskbar == false)
+			{
+				Utilities.SetAltTabVisibility(Handle, true);
+			}
 		}
 
 		private void PanelForm_ControlAdded(object sender, ControlEventArgs e)
