@@ -24,6 +24,7 @@ namespace App
 
 			ShowInTaskbar = config.data.IsShowInTaskbar;
 			TopMost = config.data.AlwaysOnTop;
+			Opacity = config.data.Opacity / 100.0;
 
 			if (config.data.IsMoved)
 			{
@@ -195,7 +196,10 @@ namespace App
 
 			menuStrip.Items.Add(new ToolStripSeparator());
 
+			ToolStripMenuItem opacityItems = CreateOpacityMenu();
 			ToolStripMenuItem intervalItems = CreateIntervalMenu();
+
+			menuStrip.Items.Add(opacityItems);
 			menuStrip.Items.Add(intervalItems);
 
 			menuStrip.Items.Add(new ToolStripSeparator());
@@ -229,6 +233,24 @@ namespace App
 			}
 
 			return intervalItems;
+		}
+
+		private ToolStripMenuItem CreateOpacityMenu()
+		{
+			ToolStripMenuItem opacityItems = new ToolStripMenuItem("Opacity");
+
+			for (byte i = 100; i > 0; i -= 10)
+			{
+				ToolStripMenuItem item = new ToolStripMenuItem()
+				{
+					Text = i + "%",
+					Checked = config.data.Opacity == i
+				};
+				item.Click += OnOpacityItemClick;
+				opacityItems.DropDownItems.Add(item);
+			}
+
+			return opacityItems;
 		}
 
 		private ToolStripMenuItem AddMenuItem(ContextMenuStrip menuStrip, string text, bool isChecked, EventHandler clickEvent)
@@ -296,6 +318,26 @@ namespace App
 			config.data.Interval = selectedInterval;
 			config.Save();
 			updateSystemInformation.Change(0, config.data.Interval);
+		}
+
+		private void OnOpacityItemClick(object sender, EventArgs e)
+		{
+			ToolStripMenuItem selectedOpacityItem = (ToolStripMenuItem) sender;
+			byte selectedOpacity = byte.Parse(selectedOpacityItem.Text.Replace("%", ""));
+
+			foreach (ToolStripMenuItem intervalItem in selectedOpacityItem.GetCurrentParent().Items)
+			{
+				intervalItem.Checked = (intervalItem == selectedOpacityItem);
+			}
+
+			config.data.Opacity = selectedOpacity;
+			config.Save();
+			Opacity = config.data.Opacity / 100.0;
+
+			if (config.data.IsHideAltTab == true)
+			{
+				Utilities.SetAltTabVisibility(Handle, true);
+			}
 		}
 
 		private void OnCloseClick(object sender, EventArgs e)

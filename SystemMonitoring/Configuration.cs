@@ -103,6 +103,7 @@ namespace App
 		public bool AllowMove { get; set; } = true;
 		public int PositionX { get; set; }
 		public int PositionY { get; set; }
+		public byte Opacity { get; set; } = 100;
 		public int Interval { get; set; } = 1000;
 		public string DefaultColor { get; set; } = "#9F9F9F";
 
