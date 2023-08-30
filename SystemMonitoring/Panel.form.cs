@@ -35,6 +35,11 @@ namespace App
 			{
 				StartPosition = FormStartPosition.CenterScreen;
 			}
+
+			if (config.data.IsShowInTaskbar == true)
+			{
+				isHideFromAltTabItem.Enabled = false;
+			}
 		}
 
 		private void PanelForm_Load(object sender, EventArgs e)
