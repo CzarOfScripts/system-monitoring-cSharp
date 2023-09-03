@@ -10,9 +10,11 @@ namespace App
 		private bool isDragging = false;
 		private Point startPoint = Point.Empty;
 		private readonly Config config = new Config();
+		private readonly InactiveAnalyzer analyzer = new InactiveAnalyzer();
 
 		private ContextMenuStrip contextMenuStrip;
 		private ToolStripMenuItem isHideFromAltTabItem;
+		private NotifyIcon trayIcon;
 
 		private System.Threading.Timer updateKeyboardLayoutTimer;
 		private System.Threading.Timer updateSystemInformation;
@@ -21,6 +23,17 @@ namespace App
 		{
 			InitializeComponent();
 			CreateContextMenu();
+			CreateTrayMenu();
+
+			analyzer.InactiveDetected += () =>
+			{
+				trayIcon.ShowBalloonTip(
+					5000,
+					"System Monitoring",
+					"[Inactive analyzer] has noticed inactivity and will shut down your computer in 5 minutes",
+					ToolTipIcon.Info
+				);
+			};
 
 			ShowInTaskbar = config.data.IsShowInTaskbar;
 			TopMost = config.data.AlwaysOnTop;
@@ -119,6 +132,9 @@ namespace App
 			{
 				ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Minutes:D2}m {uptimeTime.Seconds:D2}s");
 			}
+
+			// Check inactive
+			analyzer.Add(data, Utilities.GetLastInputTime());
 		}
 
 		private void PanelForm_MouseClick(object sender, MouseEventArgs e)
@@ -218,6 +234,17 @@ namespace App
 			);
 
 			contextMenuStrip = menuStrip;
+		}
+
+		private void CreateTrayMenu()
+		{
+			trayIcon = new NotifyIcon()
+			{
+				Icon = Icon,
+				Visible = true,
+				ContextMenuStrip = contextMenuStrip,
+				Text = "System Monitoring"
+			};
 		}
 
 		private ToolStripMenuItem CreateIntervalMenu()

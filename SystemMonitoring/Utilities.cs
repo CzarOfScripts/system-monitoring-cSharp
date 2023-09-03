@@ -5,6 +5,12 @@ using System.Windows.Forms;
 
 namespace App
 {
+	public struct LASTINPUTINFO
+	{
+		public int cbSize;
+		public uint dwTime;
+	}
+
 	public class Utilities
 	{
 		[DllImport("shell32.dll")]
@@ -18,6 +24,9 @@ namespace App
 
 		[DllImport("kernel32")]
 		extern public static ulong GetTickCount64();
+
+		[DllImport("user32.dll")]
+		public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
 
 		private const int GWL_EXSTYLE = -20;
 		private const uint WS_EX_TOOLWINDOW = 0x00000080;
@@ -93,6 +102,15 @@ namespace App
 			int b = Convert.ToInt32(hex.Substring(2 * step, step), 16);
 
 			return Color.FromArgb(r, g, b);
+		}
+
+		public static DateTime GetLastInputTime()
+		{
+			int structSize = Marshal.SizeOf(typeof(LASTINPUTINFO));
+			LASTINPUTINFO lii = new LASTINPUTINFO();
+			lii.cbSize = structSize;
+			GetLastInputInfo(ref lii);
+			return DateTime.Now.AddMilliseconds(-(Environment.TickCount - lii.dwTime));
 		}
 	}
 }

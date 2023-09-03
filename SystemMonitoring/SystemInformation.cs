@@ -99,7 +99,7 @@ namespace App
 				sensor = hardware.Sensors.FirstOrDefault(s => s.SensorType == sensorType);
 			}
 
-			return sensor != null ? (float) sensor.Value : 0;
+			return sensor != null ? (float) sensor.Value.GetValueOrDefault() : 0;
 		}
 	}
 }
