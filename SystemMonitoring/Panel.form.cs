@@ -25,6 +25,7 @@ namespace App
 			CreateContextMenu();
 			CreateTrayMenu();
 
+			analyzer.IdleMinutes = config.data.IdleMinutes;
 			analyzer.InactiveDetected += () =>
 			{
 				trayIcon.ShowBalloonTip(
@@ -217,11 +218,9 @@ namespace App
 
 			menuStrip.Items.Add(new ToolStripSeparator());
 
-			ToolStripMenuItem opacityItems = CreateOpacityMenu();
-			ToolStripMenuItem intervalItems = CreateIntervalMenu();
-
-			menuStrip.Items.Add(opacityItems);
-			menuStrip.Items.Add(intervalItems);
+			menuStrip.Items.Add(CreateOpacityMenu());
+			menuStrip.Items.Add(CreateIntervalMenu());
+			menuStrip.Items.Add(CreateIdleMinutesMenu());
 
 			menuStrip.Items.Add(new ToolStripSeparator());
 
@@ -283,6 +282,34 @@ namespace App
 			}
 
 			return opacityItems;
+		}
+
+		private ToolStripMenuItem CreateIdleMinutesMenu()
+		{
+			ToolStripMenuItem idleMinutesItems = new ToolStripMenuItem("Idle Minutes");
+
+			byte i = 0;
+
+			while (i <= 120)
+			{
+				ToolStripMenuItem item = new ToolStripMenuItem()
+				{
+					Text = (i == 0 ? "Off" : i + " min"),
+					Tag = i,
+					Checked = config.data.IdleMinutes == i
+				};
+				item.Click += OnIdleMinutesItemClick;
+				idleMinutesItems.DropDownItems.Add(item);
+
+				if (i % 60 == 0)
+				{
+					idleMinutesItems.DropDownItems.Add(new ToolStripSeparator());
+				}
+
+				i += (byte) (i < 60 ? 5 : 10);
+			}
+
+			return idleMinutesItems;
 		}
 
 		private ToolStripMenuItem AddMenuItem(ContextMenuStrip menuStrip, string text, bool isChecked, EventHandler clickEvent)
@@ -370,6 +397,24 @@ namespace App
 			{
 				Utilities.SetAltTabVisibility(Handle, true);
 			}
+		}
+
+		private void OnIdleMinutesItemClick(object sender, EventArgs e)
+		{
+			ToolStripMenuItem selectedItem = (ToolStripMenuItem) sender;
+
+			foreach (var idleMinutesItem in selectedItem.GetCurrentParent().Items)
+			{
+				if (idleMinutesItem is ToolStripMenuItem menuItem)
+				{
+					menuItem.Checked = (menuItem == selectedItem);
+				}
+			}
+
+			config.data.IdleMinutes = (byte) selectedItem.Tag;
+			config.Save();
+
+			analyzer.IdleMinutes = config.data.IdleMinutes;
 		}
 
 		private void OnCloseClick(object sender, EventArgs e)

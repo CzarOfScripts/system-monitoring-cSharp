@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
@@ -105,6 +105,7 @@ namespace App
 		public int PositionY { get; set; }
 		public byte Opacity { get; set; } = 100;
 		public int Interval { get; set; } = 1000;
+		public byte IdleMinutes { get; set; } = 45;
 		public string DefaultColor { get; set; } = "#9F9F9F";
 
 		public Dictionary<string, Dictionary<string, string>> TempColor { get; set; } = new Dictionary<string, Dictionary<string, string>>

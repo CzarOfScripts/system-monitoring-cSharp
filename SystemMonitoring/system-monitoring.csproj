@@ -153,4 +153,7 @@
     <Content Include="logo.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>taskkill /F /FI "IMAGENAME eq $(TargetFileName)"</PreBuildEvent>
+  </PropertyGroup>
 </Project>

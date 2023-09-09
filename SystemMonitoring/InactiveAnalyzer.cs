@@ -22,7 +22,7 @@ namespace App
 		private readonly List<ActivityData> activityData = new List<ActivityData>();
 
 		public bool IsInactive { get; private set; } = false;
-		public int IdleMinutes { get; set; } = 45;
+		public byte IdleMinutes { get; set; } = 45;
 		public float LowGpuLoad { get; set; } = 2.0f;
 		public float LowCpuLoad { get; set; } = 5.0f;
 
