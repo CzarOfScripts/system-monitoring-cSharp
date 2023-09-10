@@ -211,6 +211,7 @@ namespace App
 			ContextMenuStrip menuStrip = new ContextMenuStrip();
 			menuStrip.Font = new Font("Consolas", 10, FontStyle.Regular);
 
+			AddMenuItem(menuStrip, "Add to Startup", StartUp.IsStartUp(), OnShowAddToStartUpClick);
 			AddMenuItem(menuStrip, "Show in taskbar", config.data.IsShowInTaskbar, OnShowInTaskbarClick);
 			isHideFromAltTabItem = AddMenuItem(menuStrip, "Hide from Alt+Tab", config.data.IsHideAltTab, OnIsHideAltTabClick);
 			AddMenuItem(menuStrip, "Allow move", config.data.AllowMove, OnAllowMoveClick);
@@ -324,6 +325,11 @@ namespace App
 			menuStrip.Items.Add(menuItem);
 
 			return menuItem;
+		}
+
+		private void OnShowAddToStartUpClick(object sender, EventArgs e)
+		{
+			StartUp.SetIsStartUp(((ToolStripMenuItem) sender).Checked);
 		}
 
 		private void OnShowInTaskbarClick(object sender, EventArgs e)

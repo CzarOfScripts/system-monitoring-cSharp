@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -9,6 +11,48 @@ namespace App
 	{
 		public int cbSize;
 		public uint dwTime;
+	}
+
+	public class StartUp
+	{
+		public static string name = "System Monitoring";
+		public static string appPath = Assembly.GetEntryAssembly().Location;
+		public static string startupFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), name + ".lnk");
+
+		public static bool IsStartUp()
+		{
+			return File.Exists(startupFolderPath);
+		}
+
+		public static void SetIsStartUp(bool addToStartup)
+		{
+			if (addToStartup)
+			{
+				CreateShortcut(appPath, startupFolderPath);
+			}
+			else
+			{
+				if (File.Exists(startupFolderPath))
+				{
+					File.Delete(startupFolderPath);
+				}
+			}
+		}
+
+		private static void CreateShortcut(string targetPath, string shortcutPath)
+		{
+			Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+			dynamic shell = Activator.CreateInstance(shellType);
+
+			dynamic shortcut = shell.CreateShortcut(shortcutPath);
+			shortcut.TargetPath = targetPath;
+			shortcut.WorkingDirectory = Path.GetDirectoryName(targetPath);
+			shortcut.Description = name;
+			shortcut.Save();
+
+			Marshal.ReleaseComObject(shortcut);
+			Marshal.ReleaseComObject(shell);
+		}
 	}
 
 	public class Utilities
