@@ -23,6 +23,7 @@ namespace App
 	public class Config
 	{
 		public ConfigData data = new ConfigData();
+		public Action OnDataChanged;
 
 		public Config()
 		{
@@ -32,6 +33,7 @@ namespace App
 		public void Save()
 		{
 			File.WriteAllText("settings.json", JsonConvert.SerializeObject(data, Formatting.Indented));
+			OnDataChanged?.Invoke();
 		}
 
 		public string GetColor(GetColorType type, GetColorDevice device, int value)
@@ -112,13 +114,13 @@ namespace App
 		{
 			["CPU"] = new Dictionary<string, string>
 			{
-				["73"] = "FFD700",
-				["80"] = "DC4242"
+				["73"] = "#FFD700",
+				["80"] = "#DC4242"
 			},
 			["GPU"] = new Dictionary<string, string>
 			{
-				["68"] = "FFD700",
-				["80"] = "DC4242"
+				["68"] = "#FFD700",
+				["80"] = "#DC4242"
 			}
 		};
 
@@ -126,18 +128,18 @@ namespace App
 		{
 			["CPU"] = new Dictionary<string, string>
 			{
-				["55"] = "FFD700",
-				["80"] = "DC4242"
+				["55"] = "#FFD700",
+				["80"] = "#DC4242"
 			},
 			["GPU"] = new Dictionary<string, string>
 			{
-				["40"] = "FFD700",
-				["80"] = "DC4242"
+				["40"] = "#FFD700",
+				["80"] = "#DC4242"
 			},
 			["RAM"] = new Dictionary<string, string>
 			{
-				["65"] = "FFD700",
-				["80"] = "DC4242"
+				["65"] = "#FFD700",
+				["80"] = "#DC4242"
 			}
 		};
 	}
