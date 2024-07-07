@@ -41,7 +41,7 @@ namespace App
 				trayIcon.ShowBalloonTip(
 					5000,
 					"System Monitoring",
-					"[Inactive analyzer] has noticed inactivity and will shut down your _computer in 5 minutes",
+					"[Inactive analyzer] has noticed inactivity and will shut down your computer in 5 minutes",
 					ToolTipIcon.Info
 				);
 			};
@@ -233,6 +233,7 @@ namespace App
 			menuStrip.Items.Add(new ToolStripSeparator());
 
 			menuStrip.Items.Add(CreateUseLibraryMenu());
+			AddMenuItem(menuStrip, "Save report", false, (object sender, EventArgs e) => SystemInformation.SaveReport("report.txt"));
 
 			menuStrip.Items.Add(new ToolStripSeparator());
 

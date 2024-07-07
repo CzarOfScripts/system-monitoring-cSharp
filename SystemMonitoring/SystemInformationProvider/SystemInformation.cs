@@ -11,6 +11,16 @@ namespace App
 			provider = SystemInformationProviderFactory.CreateProvider(type);
 		}
 
+		public static void SaveReport(string path)
+		{
+			if (provider == null)
+			{
+				throw new InvalidOperationException("Provider has not been set. Call SetProvider() first.");
+			}
+
+			provider.SaveReport(path);
+		}
+
 		public static SystemDataInformation GetSystemInformation()
 		{
 			if (provider == null)
