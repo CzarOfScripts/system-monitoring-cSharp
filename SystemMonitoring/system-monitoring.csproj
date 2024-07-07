@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -63,6 +63,10 @@
     <ApplicationIcon>logo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="LibreHardwareMonitorLib, Version=0.9.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>external\LibreHardwareMonitorLib.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -109,7 +113,14 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="SystemInformation.cs" />
+    <Compile Include="SystemInformationProvider\LibreHardwareMonitorProvider.cs" />
+    <Compile Include="SystemInformationProvider\OpenHardwareMonitorProvider.cs" />
+    <Compile Include="SystemInformationProvider\SystemDataInformation.cs" />
+    <Compile Include="SystemInformationProvider\SystemInformation.cs" />
+    <Compile Include="SystemInformationProvider\SystemInformationProvider.cs" />
+    <Compile Include="SystemInformationProvider\SystemInformationProviderFactory.cs" />
+    <Compile Include="SystemInformationProvider\SystemInformationProviderType.cs" />
+    <Compile Include="SystemInformationProvider\UpdateVisitor.cs" />
     <Compile Include="ThreadHelper.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>
@@ -151,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="logo.ico" />
+    <None Include="Resources\LibreHardwareMonitorLib.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

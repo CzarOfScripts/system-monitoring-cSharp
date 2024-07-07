@@ -22,8 +22,18 @@ namespace App
 		public PanelForm()
 		{
 			InitializeComponent();
-			CreateContextMenu();
-			CreateTrayMenu();
+
+			try
+			{
+				SystemInformation.SetProvider(config.data.UseLibrary);
+			}
+			catch
+			{
+				config.data.UseLibrary = SystemInformationProviderType.LibreHardwareMonitor;
+				config.Save();
+
+				SystemInformation.SetProvider(config.data.UseLibrary);
+			}
 
 			analyzer.IdleMinutes = config.data.IdleMinutes;
 			analyzer.InactiveDetected += () =>
@@ -31,7 +41,7 @@ namespace App
 				trayIcon.ShowBalloonTip(
 					5000,
 					"System Monitoring",
-					"[Inactive analyzer] has noticed inactivity and will shut down your computer in 5 minutes",
+					"[Inactive analyzer] has noticed inactivity and will shut down your _computer in 5 minutes",
 					ToolTipIcon.Info
 				);
 			};
@@ -54,6 +64,9 @@ namespace App
 			{
 				isHideFromAltTabItem.Enabled = false;
 			}
+
+			CreateContextMenu();
+			CreateTrayMenu();
 		}
 
 		private void PanelForm_Load(object sender, EventArgs e)
@@ -219,6 +232,10 @@ namespace App
 
 			menuStrip.Items.Add(new ToolStripSeparator());
 
+			menuStrip.Items.Add(CreateUseLibraryMenu());
+
+			menuStrip.Items.Add(new ToolStripSeparator());
+
 			menuStrip.Items.Add(CreateOpacityMenu());
 			menuStrip.Items.Add(CreateIntervalMenu());
 			menuStrip.Items.Add(CreateIdleMinutesMenu());
@@ -245,6 +262,26 @@ namespace App
 				ContextMenuStrip = contextMenuStrip,
 				Text = "System Monitoring"
 			};
+		}
+
+		private ToolStripMenuItem CreateUseLibraryMenu()
+		{
+			ToolStripMenuItem intervalItems = new ToolStripMenuItem("Use Library");
+
+			SystemInformationProviderType[] libraries = { SystemInformationProviderType.LibreHardwareMonitor, SystemInformationProviderType.OpenHardwareMonitor };
+
+			foreach (SystemInformationProviderType library in libraries)
+			{
+				ToolStripMenuItem item = new ToolStripMenuItem()
+				{
+					Text = Enum.GetName(typeof(SystemInformationProviderType), library),
+					Checked = config.data.UseLibrary == library
+				};
+				item.Click += OnUseLibraryItemClick;
+				intervalItems.DropDownItems.Add(item);
+			}
+
+			return intervalItems;
 		}
 
 		private ToolStripMenuItem CreateIntervalMenu()
@@ -421,6 +458,31 @@ namespace App
 			config.Save();
 
 			analyzer.IdleMinutes = config.data.IdleMinutes;
+		}
+
+		private void OnUseLibraryItemClick(object sender, EventArgs e)
+		{
+			ToolStripMenuItem selectedItem = (ToolStripMenuItem) sender;
+
+			foreach (ToolStripMenuItem item in selectedItem.GetCurrentParent().Items)
+			{
+				item.Checked = (item == selectedItem);
+			}
+
+			try
+			{
+				config.data.UseLibrary = (SystemInformationProviderType) Enum.Parse(typeof(SystemInformationProviderType), selectedItem.Text);
+				config.Save();
+
+				SystemInformation.SetProvider(config.data.UseLibrary);
+			}
+			catch
+			{
+				config.data.UseLibrary = SystemInformationProviderType.LibreHardwareMonitor;
+				config.Save();
+
+				SystemInformation.SetProvider(config.data.UseLibrary);
+			}
 		}
 
 		private void OnCloseClick(object sender, EventArgs e)

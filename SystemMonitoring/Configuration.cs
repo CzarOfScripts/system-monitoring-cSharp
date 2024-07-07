@@ -109,6 +109,8 @@ namespace App
 		public int Interval { get; set; } = 1000;
 		public byte IdleMinutes { get; set; } = 45;
 		public string DefaultColor { get; set; } = "#9F9F9F";
+		public SystemInformationProviderType UseLibrary { get; set; } = SystemInformationProviderType.LibreHardwareMonitor;
+
 
 		public Dictionary<string, Dictionary<string, string>> TempColor { get; set; } = new Dictionary<string, Dictionary<string, string>>
 		{
