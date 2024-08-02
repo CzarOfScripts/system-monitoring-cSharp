@@ -96,9 +96,18 @@ namespace App
 		}
 	}
 
+	public enum ShutdownMethod
+	{
+		Shutdown = 0,    // /s
+		Hibernation = 1, // /h
+		Sleep = 2,
+		Restart = 3,     // /r
+		Logout = 4       // /l
+	}
+
 	public class ConfigData
 	{
-		public bool IsShowInTaskbar { get; set; } = true;
+		public bool IsShowInTaskbar { get; set; } = false;
 		public bool IsHideAltTab { get; set; } = true;
 		public bool IsMoved { get; set; } = false;
 		public bool AlwaysOnTop { get; set; } = false;
@@ -110,7 +119,8 @@ namespace App
 		public byte IdleMinutes { get; set; } = 45;
 		public string DefaultColor { get; set; } = "#9F9F9F";
 		public SystemInformationProviderType UseLibrary { get; set; } = SystemInformationProviderType.LibreHardwareMonitor;
-
+		public ShutdownMethod ShutdownMethod { get; set; } = ShutdownMethod.Shutdown;
+		public bool IsForceShutdown { get; set; } = false;
 
 		public Dictionary<string, Dictionary<string, string>> TempColor { get; set; } = new Dictionary<string, Dictionary<string, string>>
 		{

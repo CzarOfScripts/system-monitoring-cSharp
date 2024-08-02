@@ -72,6 +72,9 @@ namespace App
 		[DllImport("user32.dll")]
 		public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
 
+		[DllImport("powrprof.dll", SetLastError = true)]
+		public static extern void SetSuspendState(bool hibernate, bool forceCritical, bool disableWakeEvent);
+
 		private const int GWL_EXSTYLE = -20;
 		private const uint WS_EX_TOOLWINDOW = 0x00000080;
 

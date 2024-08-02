@@ -35,6 +35,8 @@ namespace App
 				SystemInformation.SetProvider(config.data.UseLibrary);
 			}
 
+			analyzer.ShutdownMethod = config.data.ShutdownMethod;
+			analyzer.IsForceShutdown = config.data.IsForceShutdown;
 			analyzer.IdleMinutes = config.data.IdleMinutes;
 			analyzer.InactiveDetected += () =>
 			{
@@ -240,6 +242,7 @@ namespace App
 			menuStrip.Items.Add(CreateOpacityMenu());
 			menuStrip.Items.Add(CreateIntervalMenu());
 			menuStrip.Items.Add(CreateIdleMinutesMenu());
+			menuStrip.Items.Add(CreateShutdownMethodMenu());
 
 			menuStrip.Items.Add(new ToolStripSeparator());
 
@@ -283,6 +286,36 @@ namespace App
 			}
 
 			return intervalItems;
+		}
+
+		private ToolStripMenuItem CreateShutdownMethodMenu()
+		{
+			ToolStripMenuItem items = new ToolStripMenuItem("Shutdown method");
+
+			ShutdownMethod[] methods = { ShutdownMethod.Shutdown, ShutdownMethod.Hibernation, ShutdownMethod.Sleep, ShutdownMethod.Restart, ShutdownMethod.Logout };
+
+			foreach (ShutdownMethod method in methods)
+			{
+				ToolStripMenuItem newItem = new ToolStripMenuItem()
+				{
+					Text = method.ToString(),
+					Checked = config.data.ShutdownMethod == method
+				};
+				newItem.Click += OnShutdownMethodItemClick;
+				items.DropDownItems.Add(newItem);
+			}
+
+			items.DropDownItems.Add(new ToolStripSeparator());
+
+			ToolStripMenuItem forceItem = new ToolStripMenuItem()
+			{
+				Text = "Force",
+				Checked = config.data.IsForceShutdown
+			};
+			forceItem.Click += OnForceShutdownItemClick;
+			items.DropDownItems.Add(forceItem);
+
+			return items;
 		}
 
 		private ToolStripMenuItem CreateIntervalMenu()
@@ -368,6 +401,48 @@ namespace App
 		private void OnShowAddToStartUpClick(object sender, EventArgs e)
 		{
 			StartUp.SetIsStartUp(((ToolStripMenuItem) sender).Checked);
+		}
+
+		private void OnShutdownMethodItemClick(object sender, EventArgs e)
+		{
+			ToolStripMenuItem selectedItem = (ToolStripMenuItem) sender;
+
+			try
+			{
+				ShutdownMethod method = (ShutdownMethod) Enum.Parse(typeof(ShutdownMethod), selectedItem.Text);
+
+				foreach (var item in selectedItem.GetCurrentParent().Items)
+				{
+					if (item is ToolStripMenuItem menuItem)
+					{
+						if (menuItem.Text != "Force")
+						{
+							menuItem.Checked = (menuItem == selectedItem);
+						}
+					}
+				}
+
+				config.data.ShutdownMethod = method;
+				config.Save();
+
+				analyzer.ShutdownMethod = config.data.ShutdownMethod;
+			}
+			catch
+			{
+				return;
+			}
+		}
+
+		private void OnForceShutdownItemClick(object sender, EventArgs e)
+		{
+			// Why do we have to do this here?
+			ToolStripMenuItem item = ((ToolStripMenuItem) sender);
+			item.Checked = !item.Checked;
+
+			config.data.IsForceShutdown = item.Checked;
+			config.Save();
+
+			analyzer.IsForceShutdown = config.data.IsForceShutdown;
 		}
 
 		private void OnShowInTaskbarClick(object sender, EventArgs e)
@@ -473,17 +548,15 @@ namespace App
 			try
 			{
 				config.data.UseLibrary = (SystemInformationProviderType) Enum.Parse(typeof(SystemInformationProviderType), selectedItem.Text);
-				config.Save();
-
-				SystemInformation.SetProvider(config.data.UseLibrary);
 			}
 			catch
 			{
 				config.data.UseLibrary = SystemInformationProviderType.LibreHardwareMonitor;
-				config.Save();
-
-				SystemInformation.SetProvider(config.data.UseLibrary);
 			}
+
+			config.Save();
+
+			SystemInformation.SetProvider(config.data.UseLibrary);
 		}
 
 		private void OnCloseClick(object sender, EventArgs e)

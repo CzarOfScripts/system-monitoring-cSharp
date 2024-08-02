@@ -25,6 +25,8 @@ namespace App
 		public byte IdleMinutes { get; set; } = 45;
 		public float LowGpuLoad { get; set; } = 2.0f;
 		public float LowCpuLoad { get; set; } = 5.0f;
+		public ShutdownMethod ShutdownMethod { get; set; } = ShutdownMethod.Shutdown;
+		public bool IsForceShutdown { get; set; } = false;
 
 		public event Action InactiveDetected;
 
@@ -77,7 +79,24 @@ namespace App
 					{
 						try
 						{
-							Process.Start("shutdown", "/s /t 0");
+							switch (ShutdownMethod)
+							{
+								case ShutdownMethod.Shutdown:
+									Process.Start("shutdown", "/s /t 0" + (IsForceShutdown ? " /f" : ""));
+									break;
+								case ShutdownMethod.Hibernation:
+									Process.Start("shutdown", "/h" + (IsForceShutdown ? " /f" : ""));
+									break;
+								case ShutdownMethod.Sleep:
+									Utilities.SetSuspendState(false, true, false);
+									break;
+								case ShutdownMethod.Restart:
+									Process.Start("shutdown", "/r /t 0" + (IsForceShutdown ? " /f" : ""));
+									break;
+								case ShutdownMethod.Logout:
+									Process.Start("shutdown", "/l");
+									break;
+							}
 						}
 						catch (Exception ex)
 						{
