@@ -19,8 +19,8 @@ This project marks my first experience in C#. It was initially created to fulfil
 ![system-monitoring-panel](https://github.com/CzarOfScripts/system-monitoring-cSharp/assets/78804737/38d89ad7-6f82-45c4-a847-a3752ebefb78)
 
 ## Libraries used for sensor values
-- OpenHardwareMonitor
-- LibreHardwareMonitor
+- [OpenHardwareMonitor](https://github.com/openhardwaremonitor/openhardwaremonitor)
+- [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)
 
 \* *You can select the desired library from the context menu.*
 
