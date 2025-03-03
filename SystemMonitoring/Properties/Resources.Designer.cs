@@ -63,6 +63,16 @@ namespace App.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] LibreHardwareMonitorLib {
+            get {
+                object obj = ResourceManager.GetObject("LibreHardwareMonitorLib", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] OpenHardwareMonitorLib {
             get {
                 object obj = ResourceManager.GetObject("OpenHardwareMonitorLib", resourceCulture);

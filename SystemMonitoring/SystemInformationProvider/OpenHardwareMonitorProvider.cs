@@ -82,7 +82,14 @@ namespace App
 
 			foreach (IHardware hardware in _computer.Hardware)
 			{
-				hardware.Update();
+				try
+				{
+					hardware.Update();
+				}
+				catch
+				{
+					continue;
+				}
 
 				if (hardware.HardwareType == HardwareType.CPU)
 				{
