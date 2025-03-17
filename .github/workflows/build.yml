@@ -1,0 +1,46 @@
+name: Build and Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get version
+        id: get_version
+        shell: pwsh
+        run: |
+          $assemblyInfoPath = "SystemMonitoring/Properties/AssemblyInfo.cs"
+          if (-Not (Test-Path $assemblyInfoPath)) {
+            Write-Error "AssemblyInfo.cs not found at $assemblyInfoPath"
+            exit 1
+          }
+          $content = Get-Content -Path $assemblyInfoPath
+          $version = ($content | Select-String -Pattern 'AssemblyVersion\("([^"]+)"\)').Matches.Groups[1].Value
+          echo "Version: $version"
+          echo "::set-output name=version::$version"
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Clean the project
+        run: msbuild "SystemMonitoring/system-monitoring.csproj" /t:Clean /p:Configuration=Release
+
+      - name: Restore NuGet packages
+        run: nuget restore
+
+      - name: Build the project
+        run: msbuild "SystemMonitoring/system-monitoring.csproj" /p:Configuration=Release /p:OutputPath=./publish
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: System-Monitoring-v${{ steps.get_version.outputs.version | replace('.', '-') }}
+          path: ./publish
