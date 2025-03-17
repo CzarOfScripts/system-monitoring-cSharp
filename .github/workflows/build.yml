@@ -42,5 +42,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: System-Monitoring-v${{ format('{0}', steps.get_version.outputs.version) | replace('.', '-') }}
+          name: System-Monitoring-v${{ steps.get_version.outputs.version }}
           path: ./publish
