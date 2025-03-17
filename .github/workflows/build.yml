@@ -32,7 +32,7 @@ jobs:
             exit 1
           }
           $version = ($versionLine -replace '^\s*\[assembly:\s*AssemblyVersion\("([^"]+)"\)\].*', '$1')
-          echo "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           
       - name: Debug version output
         run: |
@@ -45,7 +45,7 @@ jobs:
         run: msbuild "SystemMonitoring/system-monitoring.csproj" /t:Clean /p:Configuration=Release
 
       - name: Restore NuGet packages
-        run: nuget restore
+        run: nuget restore system-monitoring.sln
 
       - name: Build the project
         run: msbuild "SystemMonitoring/system-monitoring.csproj" /p:Configuration=Release /p:OutputPath=${{ github.workspace }}/publish
@@ -58,6 +58,16 @@ jobs:
         with:
           name: System-Monitoring-v${{ steps.get_version.outputs.version }}
           path: ./publish
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: System-Monitoring-v${{ steps.get_version.outputs.version }}
+          path: ./artifact_download
+
+      - name: Create ZIP from artifact
+        run: Compress-Archive -Path ./artifact_download/* -DestinationPath ./System-Monitoring-v${{ steps.get_version.outputs.version }}.zip -Force
+        shell: pwsh
 
       - name: Create Release (Draft)
         id: create_release
