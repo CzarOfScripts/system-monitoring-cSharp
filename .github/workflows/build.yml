@@ -40,7 +40,7 @@ jobs:
         run: msbuild "SystemMonitoring/system-monitoring.csproj" /p:Configuration=Release /p:OutputPath=./publish
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: System-Monitoring-v${{ steps.get_version.outputs.version }}
           path: ./publish
