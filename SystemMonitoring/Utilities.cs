@@ -60,11 +60,17 @@ namespace App
 		[DllImport("shell32.dll")]
 		private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
 
-		[DllImport("user32.dll", SetLastError = true)]
-		private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+		[DllImport("user32.dll", EntryPoint = "GetWindowLong")]
+		private static extern IntPtr GetWindowLong32(IntPtr hWnd, int nIndex);
 
-		[DllImport("user32.dll", SetLastError = true)]
-		private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+		[DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
+		private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
+
+		[DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+		private static extern IntPtr SetWindowLong32(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+		[DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+		private static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
 		[DllImport("kernel32")]
 		extern public static ulong GetTickCount64();
@@ -77,6 +83,16 @@ namespace App
 
 		private const int GWL_EXSTYLE = -20;
 		private const uint WS_EX_TOOLWINDOW = 0x00000080;
+
+		private static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
+		{
+			return IntPtr.Size == 8 ? GetWindowLongPtr64(hWnd, nIndex) : GetWindowLong32(hWnd, nIndex);
+		}
+
+		private static IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+		{
+			return IntPtr.Size == 8 ? SetWindowLongPtr64(hWnd, nIndex, dwNewLong) : SetWindowLong32(hWnd, nIndex, dwNewLong);
+		}
 
 		public static void SetAltTabVisibility(IntPtr hWnd, bool hide)
 		{
