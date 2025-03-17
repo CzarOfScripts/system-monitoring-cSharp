@@ -23,9 +23,13 @@ jobs:
             exit 1
           }
           $content = Get-Content -Path $assemblyInfoPath
-          $version = ($content | Select-String -Pattern 'AssemblyVersion\("([^"]+)"\)').Matches.Groups[1].Value
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "::set-output name=version::$version"
+          $versionLine = $content | Where-Object { $_ -match '^\s*\[assembly:\s*AssemblyVersion\("([^"]+)"\)\]' }
+          if (-Not $versionLine) {
+            Write-Error "AssemblyVersion not found in $assemblyInfoPath"
+            exit 1
+          }
+          $version = ($versionLine -replace '^\s*\[assembly:\s*AssemblyVersion\("([^"]+)"\)\].*', '$1')
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1
