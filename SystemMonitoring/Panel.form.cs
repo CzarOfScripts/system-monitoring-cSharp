@@ -2,11 +2,14 @@
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using NLog;
 
 namespace App
 {
 	public partial class PanelForm : Form
 	{
+		private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
 		private bool isDragging = false;
 		private Point startPoint = Point.Empty;
 		private readonly Config config = new Config();
@@ -21,19 +24,38 @@ namespace App
 
 		public PanelForm()
 		{
-			InitializeComponent();
-
 			try
 			{
-				SystemInformation.SetProvider(config.data.UseLibrary);
+				InitializeComponent();
+
+				try
+				{
+									SystemInformation.SetProvider(config.data.UseLibrary);
 			}
-			catch
+			catch (Exception ex)
 			{
+				logger.Warn(ex, "Error setting provider {Provider}: {Message}", config.data.UseLibrary, ex.Message);
 				config.data.UseLibrary = SystemInformationProviderType.LibreHardwareMonitor;
 				config.Save();
 
-				SystemInformation.SetProvider(config.data.UseLibrary);
+				try
+				{
+					SystemInformation.SetProvider(config.data.UseLibrary);
+				}
+				catch (Exception ex2)
+				{
+					logger.Error(ex2, "Critical error setting fallback provider: {Message}", ex2.Message);
+					MessageBox.Show("Failed to initialize system monitoring. Application will be closed.",
+						"Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					throw;
+				}
 			}
+		}
+		catch (Exception ex)
+		{
+			logger.Fatal(ex, "Critical error in PanelForm constructor: {Message}", ex.Message);
+			throw;
+		}
 
 			analyzer.ShutdownMethod = config.data.ShutdownMethod;
 			analyzer.IsForceShutdown = config.data.IsForceShutdown;
@@ -73,152 +95,225 @@ namespace App
 
 		private void PanelForm_Load(object sender, EventArgs e)
 		{
-			updateKeyboardLayoutTimer = new System.Threading.Timer(new TimerCallback(UpdateKeyboardLayout), null, 0, 50);
-			updateSystemInformation = new System.Threading.Timer(new TimerCallback(UpdateSystemInformation), null, 0, config.data.Interval);
-			UpdateSystemInformation(null);
-
-			if (config.data.IsHideAltTab && config.data.IsShowInTaskbar == false)
+			try
 			{
-				Utilities.SetAltTabVisibility(Handle, true);
+				updateKeyboardLayoutTimer = new System.Threading.Timer(new TimerCallback(UpdateKeyboardLayout), null, 0, 50);
+				updateSystemInformation = new System.Threading.Timer(new TimerCallback(UpdateSystemInformation), null, 0, config.data.Interval);
+				UpdateSystemInformation(null);
+
+				if (config.data.IsHideAltTab && config.data.IsShowInTaskbar == false)
+				{
+					Utilities.SetAltTabVisibility(Handle, true);
+				}
+			}
+						catch (Exception ex)
+			{
+				logger.Error(ex, "Error in PanelForm_Load: {Message}", ex.Message);
+				MessageBox.Show($"Error loading form: {ex.Message}",
+					"Loading Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			}
 		}
 
 		private void PanelForm_ControlAdded(object sender, ControlEventArgs e)
 		{
-			e.Control.MouseDown += PanelForm_MouseDown;
-			e.Control.MouseMove += PanelForm_MouseMove;
-			e.Control.MouseUp += PanelForm_MouseUp;
-			e.Control.MouseClick += PanelForm_MouseClick;
+			try
+			{
+				e.Control.MouseDown += PanelForm_MouseDown;
+				e.Control.MouseMove += PanelForm_MouseMove;
+				e.Control.MouseUp += PanelForm_MouseUp;
+				e.Control.MouseClick += PanelForm_MouseClick;
+			}
+			catch (Exception ex)
+			{
+				logger.Error(ex, "Error adding event handlers: {Message}", ex.Message);
+			}
 		}
 
 		private void PanelForm_ControlRemoved(object sender, ControlEventArgs e)
 		{
-			e.Control.MouseDown -= PanelForm_MouseDown;
-			e.Control.MouseMove -= PanelForm_MouseMove;
-			e.Control.MouseUp -= PanelForm_MouseUp;
-			e.Control.MouseClick -= PanelForm_MouseClick;
+			try
+			{
+				e.Control.MouseDown -= PanelForm_MouseDown;
+				e.Control.MouseMove -= PanelForm_MouseMove;
+				e.Control.MouseUp -= PanelForm_MouseUp;
+				e.Control.MouseClick -= PanelForm_MouseClick;
+			}
+			catch (Exception ex)
+			{
+				logger.Error(ex, "Error removing event handlers: {Message}", ex.Message);
+			}
 		}
 
 		private void UpdateKeyboardLayout(object obj)
 		{
-			string currentLang = Keyboard.GetLayoutNameFromIds(Keyboard.GetKeyboardLayoutId());
-
-			if (currentLang != ThreadHelper.GetLabelText(this, KeyboardLayout))
+			try
 			{
-				ThreadHelper.SetLabelText(this, KeyboardLayout, currentLang);
+				string currentLang = Keyboard.GetLayoutNameFromIds(Keyboard.GetKeyboardLayoutId());
+
+				if (currentLang != ThreadHelper.GetLabelText(this, KeyboardLayout))
+				{
+					ThreadHelper.SetLabelText(this, KeyboardLayout, currentLang);
+				}
+			}
+			catch (Exception ex)
+			{
+				// Log error but don't let application crash
+				logger.Error(ex, "Error in UpdateKeyboardLayout: {Message}", ex.Message);
 			}
 		}
 
 		private void UpdateSystemInformation(object obj)
 		{
-			SystemDataInformation data = SystemInformation.GetSystemInformation();
-
-			//GPU
-			ThreadHelper.SetLabelText(this, GpuLoad, Convert.ToString(data.gpuLoad) + (data.gpuLoad < 100 ? " " : "") + "%");
-			ThreadHelper.SetControlForeColor(this, GpuLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.GPU, data.gpuLoad)));
-
-			ThreadHelper.SetLabelText(this, GpuTemp, Convert.ToString(data.gpuTemperature) + "°C");
-			ThreadHelper.SetControlForeColor(this, GpuTemp, Utilities.HexToColor(config.GetColor(GetColorType.TEMPERATURES, GetColorDevice.GPU, data.gpuTemperature)));
-
-			//CPU
-			ThreadHelper.SetLabelText(this, CpuLoad, Convert.ToString((int) data.cpuLoad) + (data.cpuLoad < 100 ? " " : "") + "%");
-			ThreadHelper.SetControlForeColor(this, CpuLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.CPU, (int) data.cpuLoad)));
-
-			ThreadHelper.SetLabelText(this, CpuTemp, Convert.ToString((int) data.cpuTemperature) + "°C");
-			ThreadHelper.SetControlForeColor(this, CpuTemp, Utilities.HexToColor(config.GetColor(GetColorType.TEMPERATURES, GetColorDevice.CPU, (int) data.cpuTemperature)));
-
-			//RAM
-			ThreadHelper.SetLabelText(this, RamLoad, string.Format("{0:0.00}", data.ramLoad) + " % ");
-			ThreadHelper.SetControlForeColor(this, RamLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.RAM, (int) data.ramLoad)));
-
-			ThreadHelper.SetLabelText(this, RamFree, string.Format("{0:0.00}", data.ramAvailable) + " GB");
-
-			//Uptime
-			TimeSpan uptimeTime = TimeSpan.FromMilliseconds(Utilities.GetTickCount64());
-
-			if (uptimeTime.Days > 0)
+			try
 			{
-				ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Days}d {uptimeTime.Hours:D2}h");
-			}
-			else if (uptimeTime.Hours > 0)
-			{
-				ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Hours:D2}h {uptimeTime.Minutes:D2}m");
-			}
-			else
-			{
-				ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Minutes:D2}m {uptimeTime.Seconds:D2}s");
-			}
+				SystemDataInformation data = SystemInformation.GetSystemInformation();
 
-			// Check inactive
-			analyzer.Add(data, Utilities.GetLastInputTime());
+				//GPU
+				ThreadHelper.SetLabelText(this, GpuLoad, Convert.ToString(data.gpuLoad) + (data.gpuLoad < 100 ? " " : "") + "%");
+				ThreadHelper.SetControlForeColor(this, GpuLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.GPU, data.gpuLoad)));
+
+				ThreadHelper.SetLabelText(this, GpuTemp, Convert.ToString(data.gpuTemperature) + "°C");
+				ThreadHelper.SetControlForeColor(this, GpuTemp, Utilities.HexToColor(config.GetColor(GetColorType.TEMPERATURES, GetColorDevice.GPU, data.gpuTemperature)));
+
+				//CPU
+				ThreadHelper.SetLabelText(this, CpuLoad, Convert.ToString((int) data.cpuLoad) + (data.cpuLoad < 100 ? " " : "") + "%");
+				ThreadHelper.SetControlForeColor(this, CpuLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.CPU, (int) data.cpuLoad)));
+
+				ThreadHelper.SetLabelText(this, CpuTemp, Convert.ToString((int) data.cpuTemperature) + "°C");
+				ThreadHelper.SetControlForeColor(this, CpuTemp, Utilities.HexToColor(config.GetColor(GetColorType.TEMPERATURES, GetColorDevice.CPU, (int) data.cpuTemperature)));
+
+				//RAM
+				ThreadHelper.SetLabelText(this, RamLoad, string.Format("{0:0.00}", data.ramLoad) + " % ");
+				ThreadHelper.SetControlForeColor(this, RamLoad, Utilities.HexToColor(config.GetColor(GetColorType.LOAD, GetColorDevice.RAM, (int) data.ramLoad)));
+
+				ThreadHelper.SetLabelText(this, RamFree, string.Format("{0:0.00}", data.ramAvailable) + " GB");
+
+				//Uptime
+				TimeSpan uptimeTime = TimeSpan.FromMilliseconds(Utilities.GetTickCount64());
+
+				if (uptimeTime.Days > 0)
+				{
+					ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Days}d {uptimeTime.Hours:D2}h");
+				}
+				else if (uptimeTime.Hours > 0)
+				{
+					ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Hours:D2}h {uptimeTime.Minutes:D2}m");
+				}
+				else
+				{
+					ThreadHelper.SetLabelText(this, Uptime, $"{uptimeTime.Minutes:D2}m {uptimeTime.Seconds:D2}s");
+				}
+
+				// Check inactive
+				analyzer.Add(data, Utilities.GetLastInputTime());
+			}
+			catch (Exception ex)
+			{
+				logger.Error(ex, "Error in UpdateSystemInformation: {Message}", ex.Message);
+			}
 		}
 
 		private void PanelForm_MouseClick(object sender, MouseEventArgs e)
 		{
-			if (e.Button != MouseButtons.Right)
+			try
 			{
-				return;
-			}
+				if (e.Button != MouseButtons.Right)
+				{
+					return;
+				}
 
-			contextMenuStrip.Show(this, PointToClient(Cursor.Position));
+				contextMenuStrip.Show(this, PointToClient(Cursor.Position));
+			}
+			catch (Exception ex)
+			{
+				logger.Error(ex, "Error in PanelForm_MouseClick: {Message}", ex.Message);
+			}
 		}
 
 		private void PanelForm_MouseDown(object sender, MouseEventArgs e)
 		{
-			if (config.data.AllowMove == false)
+			try
 			{
-				return;
-			}
+				if (config.data.AllowMove == false)
+				{
+					return;
+				}
 
-			if (e.Button == MouseButtons.Left)
+				if (e.Button == MouseButtons.Left)
+				{
+					isDragging = true;
+					startPoint = new Point(e.X, e.Y);
+				}
+			}
+			catch (Exception ex)
 			{
-				isDragging = true;
-				startPoint = new Point(e.X, e.Y);
+				logger.Error(ex, "Error in PanelForm_MouseDown: {Message}", ex.Message);
 			}
 		}
 
 		private void PanelForm_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (config.data.AllowMove == false)
+			try
 			{
-				return;
-			}
+				if (config.data.AllowMove == false)
+				{
+					return;
+				}
 
-			if (!isDragging)
+				if (!isDragging)
+				{
+					return;
+				}
+
+				int deltaX = e.X - startPoint.X;
+				int deltaY = e.Y - startPoint.Y;
+				Location = new Point(Location.X + deltaX, Location.Y + deltaY);
+
+				config.data.PositionX = Location.X;
+				config.data.PositionY = Location.Y;
+			}
+			catch (Exception ex)
 			{
-				return;
+				logger.Error(ex, "Error in PanelForm_MouseMove: {Message}", ex.Message);
 			}
-
-			int deltaX = e.X - startPoint.X;
-			int deltaY = e.Y - startPoint.Y;
-			Location = new Point(Location.X + deltaX, Location.Y + deltaY);
-
-			config.data.PositionX = Location.X;
-			config.data.PositionY = Location.Y;
 		}
 
 		private void PanelForm_MouseUp(object sender, MouseEventArgs e)
 		{
-			if (config.data.AllowMove == false)
+			try
 			{
-				return;
+				if (config.data.AllowMove == false)
+				{
+					return;
+				}
+
+				if (isDragging && e.Button == MouseButtons.Left)
+				{
+					isDragging = false;
+					startPoint = Point.Empty;
+
+					config.data.IsMoved = true;
+					config.Save();
+				}
 			}
-
-			if (isDragging && e.Button == MouseButtons.Left)
+			catch (Exception ex)
 			{
-				isDragging = false;
-				startPoint = Point.Empty;
-
-				config.data.IsMoved = true;
-				config.Save();
+				logger.Error(ex, "Error in PanelForm_MouseUp: {Message}", ex.Message);
 			}
 		}
 
 		private void PanelForm_FormClosed(object sender, FormClosedEventArgs e)
 		{
-			updateKeyboardLayoutTimer.Dispose();
-			updateSystemInformation.Dispose();
-			SystemInformation.Close();
+			try
+			{
+				updateKeyboardLayoutTimer?.Dispose();
+				updateSystemInformation?.Dispose();
+				SystemInformation.Close();
+			}
+			catch (Exception ex)
+			{
+				logger.Error(ex, "Error closing form: {Message}", ex.Message);
+			}
 		}
 
 		private void CreateContextMenu()

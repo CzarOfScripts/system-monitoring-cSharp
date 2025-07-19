@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 
 using Newtonsoft.Json;
+using NLog;
 
 namespace App
 {
@@ -22,6 +23,8 @@ namespace App
 
 	public class Config
 	{
+		private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
 		public ConfigData data = new ConfigData();
 		public Action OnDataChanged;
 
@@ -32,8 +35,15 @@ namespace App
 
 		public void Save()
 		{
-			File.WriteAllText("settings.json", JsonConvert.SerializeObject(data, Formatting.Indented));
-			OnDataChanged?.Invoke();
+			try
+			{
+				File.WriteAllText("settings.json", JsonConvert.SerializeObject(data, Formatting.Indented));
+				OnDataChanged?.Invoke();
+			}
+			catch (Exception ex)
+			{
+				logger.Error(ex, "Error saving configuration: {Message}", ex.Message);
+			}
 		}
 
 		public string GetColor(GetColorType type, GetColorDevice device, int value)
@@ -58,40 +68,62 @@ namespace App
 
 		private void AskRestoreIncorrectConfig()
 		{
-			DialogResult result = MessageBox.Show(
-					"The settings file (settings.json) is in an incorrect format. Would you like to replace the file with the default settings?\nChoosing \"No\" will result in closing the program.",
-					"Error in settings file",
-					MessageBoxButtons.YesNo,
-					MessageBoxIcon.Error
-				);
-
-			if (result == DialogResult.Yes)
+			try
 			{
+				DialogResult result = MessageBox.Show(
+						"The settings file (settings.json) is in an incorrect format. Would you like to replace the file with the default settings?\nChoosing \"No\" will result in closing the program.",
+						"Error in settings file",
+						MessageBoxButtons.YesNo,
+						MessageBoxIcon.Error
+					);
+
+				if (result == DialogResult.Yes)
+				{
+					data = new ConfigData();
+					Save();
+				}
+				else
+				{
+					Application.Exit();
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.Error(ex, "Error in AskRestoreIncorrectConfig: {Message}", ex.Message);
 				data = new ConfigData();
 				Save();
-			}
-			else
-			{
-				Application.Exit();
 			}
 		}
 
 		private void Load()
 		{
-			if (File.Exists("settings.json") == false)
-			{
-				Save();
-				return;
-			}
-
 			try
 			{
-				JsonConvert.PopulateObject(File.ReadAllText("settings.json"), data);
-				Save();
+				if (File.Exists("settings.json") == false)
+				{
+					Save();
+					return;
+				}
+
+				try
+				{
+					JsonConvert.PopulateObject(File.ReadAllText("settings.json"), data);
+					Save();
+				}
+				catch (JsonSerializationException)
+				{
+					AskRestoreIncorrectConfig();
+				}
+				catch (Exception ex)
+				{
+					logger.Error(ex, "Error loading configuration: {Message}", ex.Message);
+					AskRestoreIncorrectConfig();
+				}
 			}
-			catch (JsonSerializationException)
+			catch (Exception ex)
 			{
-				AskRestoreIncorrectConfig();
+				logger.Error(ex, "Critical error loading configuration: {Message}", ex.Message);
+				data = new ConfigData();
 			}
 		}
 	}
